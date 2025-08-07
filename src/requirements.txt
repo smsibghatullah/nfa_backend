@@ -5,3 +5,4 @@ djangorestframework-simplejwt
 django-otp
 pyotp
 drf-yasg
+whitenoise
