@@ -6,3 +6,4 @@ django-otp
 pyotp
 drf-yasg
 whitenoise
+gunicorn
