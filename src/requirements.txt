@@ -1,0 +1,7 @@
+django
+psycopg[binary]
+djangorestframework
+djangorestframework-simplejwt
+django-otp
+pyotp
+drf-yasg
