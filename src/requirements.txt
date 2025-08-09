@@ -7,3 +7,4 @@ pyotp
 drf-yasg
 whitenoise
 gunicorn
+openpyxl
