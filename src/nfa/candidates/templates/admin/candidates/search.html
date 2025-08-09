@@ -1,0 +1,46 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+  <h1>🔍 Search Candidates</h1>
+
+  <form method="get">
+      <input type="text" name="q" placeholder="Search by CNIC or Name" value="{{ query }}" />
+      <button type="submit">Search</button>
+  </form>
+
+  {% if candidates %}
+    <h2>Results:</h2>
+    <table border="1" cellpadding="5" cellspacing="0">
+      <tr>
+        <th>Roll No</th>
+        <th>Name</th>
+        <th>CNIC</th>
+        <th>Mobile No</th>
+        <th>Test Schedule</th>
+      </tr>
+      {% for c in candidates %}
+      <tr>
+        <td>{{ c.roll_no }}</td>
+        <td>{{ c.name }}</td>
+        <td>{{ c.cnic }}</td>
+        <td>{{ c.mobile_no }}</td>
+        <td>
+            {% for t in c.test_schedules.all %}
+            <div>
+                <strong>Post:</strong> {{ t.job_post.title }} <br>
+                <strong>Paper:</strong> {{ t.paper }} <br>
+                <strong>Date:</strong> {{ t.test_date }} <br>
+                <strong>Session:</strong> {{ t.session }} <br>
+                <strong>Reporting Time:</strong> {{ t.reporting_time }} <br>
+                <strong>Conduct Time:</strong> {{ t.conduct_time }}
+            </div>
+            <hr>
+            {% endfor %}
+        </td>
+      </tr>
+      {% endfor %}
+    </table>
+  {% elif query %}
+    <p>No results found.</p>
+  {% endif %}
+{% endblock %}
