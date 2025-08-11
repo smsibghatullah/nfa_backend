@@ -51,17 +51,20 @@ def upload_schedule(request):
             return redirect(request.path)
 
         expected_columns = [
-            'Roll No', 'Name', 'Father Name', 'CNIC', 'Post Applied For', 'Postal Address',
-            'Mobile No.', 'Paper', 'Test Date', 'Session', 'Reporting Time', 'Conduct Time'
+            'Sr.No.', 'Roll No', 'Name', 'Father Name', 'CNIC', 'Post Applied For', 'Postal Address',
+            'Mobile No.', 'Paper', 'Test Date', 'Session', 'Reporting Time', 'Conduct Time', 'Venue'
         ]
+
         headers = [cell.value for cell in next(ws.iter_rows(min_row=1, max_row=1))]
         if headers != expected_columns:
             messages.error(request, "Excel format is invalid. Ensure headers match the required structure.")
             return redirect(request.path)
 
         for row in ws.iter_rows(min_row=2, values_only=True):
+            if all((cell is None or (isinstance(cell, str) and cell.strip() == "")) for cell in row):
+                continue
             try:
-                roll_no, name, father_name, cnic, post_title, postal_address, mobile_no, paper, test_date, session, reporting_time, conduct_time = row
+                sr_no, roll_no, name, father_name, cnic, post_title, postal_address, mobile_no, paper, test_date, session, reporting_time, conduct_time, venue = row
 
                 test_date = parse_excel_date(test_date)
 
@@ -90,7 +93,8 @@ def upload_schedule(request):
                     test_date=test_date,
                     session=session,
                     reporting_time=reporting_time,
-                    conduct_time=conduct_time
+                    conduct_time=conduct_time,
+                    venue=venue
                 )
 
             except Exception as e:
