@@ -1,3 +1,4 @@
 /bin
 src/nfa/nfa/settings.py
 .env
+src/nfa/media
