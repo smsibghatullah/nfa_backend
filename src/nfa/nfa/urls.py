@@ -4,6 +4,8 @@ from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from .views import home
+from django.conf import settings
+from django.conf.urls.static import static
 
 schema_view = get_schema_view(
    openapi.Info(
@@ -21,7 +23,12 @@ schema_view = get_schema_view(
 urlpatterns = [
     path('', home),
     path('admin/', admin.site.urls),
+    path('admin/candidates/', include(('candidates.urls', 'candidates'), namespace='candidates')),
     path('api/auth/', include('authentication.urls')),
+    path('api/candidates/', include('candidates.urls')),
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
