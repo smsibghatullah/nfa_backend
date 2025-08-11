@@ -1,0 +1,45 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block content %}
+<h1>Submitted Forms</h1>
+
+<table id="result_list" class="table table-striped">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Service</th>
+            <th>Preferred Contact</th>
+            <th>Description</th>
+            <th>Submitted At</th>
+            <th>File</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for form in forms %}
+        <tr>
+            <td>{{ form.name }}</td>
+            <td>{{ form.email }}</td>
+            <td>{{ form.phone }}</td>
+            <td>{{ form.service }}</td>
+            <td>{{ form.preferred_contact }}</td>
+            <td>{{ form.description }}</td>
+            <td>{{ form.submitted_at }}</td>
+            <td>
+                {% if form.file %}
+                    <a href="{{ form.file.url }}" download>Download</a>
+                {% else %}
+                    -
+                {% endif %}
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="8">No forms submitted.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

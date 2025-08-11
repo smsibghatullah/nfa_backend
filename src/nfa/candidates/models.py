@@ -1,4 +1,15 @@
+import os
 from django.db import models
+from django.utils import timezone
+import uuid
+import re
+
+def contact_upload_path(instance, filename):
+    safe_name = re.sub(r'[^a-zA-Z0-9_-]', '', instance.name.replace(' ', '_')).lower()
+    base, ext = os.path.splitext(filename)
+    unique_name = f"{safe_name}_{base}_{uuid.uuid4().hex}{ext}"
+    now = timezone.now()
+    return os.path.join('contact_uploads', now.strftime('%Y/%m/%d'), unique_name)
 
 class JobPost(models.Model):
     code = models.CharField(max_length=20, unique=True, help_text="Short code or abbreviation e.g. 'NQ (1)'")
@@ -35,3 +46,34 @@ class TestSchedule(models.Model):
     def __str__(self):
         return f"TestSchedule for {self.candidate.roll_no} - {self.job_post.code} on {self.test_date}"
 
+class ContactRequest(models.Model):
+    SERVICE_CHOICES = [
+        ('fingerprint_analysis', 'Fingerprint Analysis'),
+        ('digital_forensics', 'Digital Forensics'),
+        ('narcotics_analysis', 'Narcotics Analysis'),
+        ('crime_scene_investigation', 'Crime Scene Investigation'),
+        ('firearms_tool_marks', 'Firearms & Tool Marks'),
+        ('dna_forensics', 'DNA Forensics'),
+        ('questioned_documents', 'Questioned Documents'),
+        ('toxicology', 'Toxicology'),
+        ('serology', 'Serology'),
+        ('pathology', 'Pathology'),
+        ('explosives_analysis', 'Explosives Analysis'),
+    ]
+
+    PREFERRED_CONTACT_CHOICES = [
+        ('email', 'Email'),
+        ('phone', 'Phone'),
+    ]
+
+    name = models.CharField(max_length=255)
+    email = models.EmailField()
+    phone = models.CharField(max_length=50)
+    service = models.CharField(max_length=100, choices=SERVICE_CHOICES)
+    description = models.TextField(blank=True, null=True)
+    preferred_contact = models.CharField(max_length=10, choices=PREFERRED_CONTACT_CHOICES)
+    file = models.FileField(upload_to=contact_upload_path, blank=True, null=True)
+    submitted_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.name} - {self.service} ({self.submitted_at.strftime('%Y-%m-%d %H:%M')})"

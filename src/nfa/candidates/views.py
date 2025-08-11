@@ -3,7 +3,23 @@ import datetime
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
-from .models import Candidate, JobPost, TestSchedule
+from .models import Candidate, JobPost, TestSchedule, ContactRequest
+from .serializers import ContactRequestSerializer
+
+from rest_framework.decorators import api_view, parser_classes
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.parsers import MultiPartParser, FormParser
+
+
+@api_view(['POST'])
+@parser_classes([MultiPartParser, FormParser])
+def contact_us(request):
+    serializer = ContactRequestSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response({"message": "Contact request submitted successfully."}, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 def parse_excel_date(value):
