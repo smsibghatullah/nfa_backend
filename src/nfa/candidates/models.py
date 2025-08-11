@@ -42,9 +42,10 @@ class TestSchedule(models.Model):
     session = models.CharField(max_length=50)
     reporting_time = models.CharField(max_length=20)
     conduct_time = models.CharField(max_length=50)
-    
+    venue = models.TextField(blank=True, null=True, help_text="Test venue/location")
+
     def __str__(self):
-        return f"TestSchedule for {self.candidate.roll_no} - {self.job_post.code} on {self.test_date}"
+        return f"TestSchedule for {self.candidate.roll_no} - {self.job_post.code} on {self.test_date} at {self.venue or 'N/A'}"
 
 class ContactRequest(models.Model):
     SERVICE_CHOICES = [
