@@ -25,7 +25,7 @@ class CandidateAdmin(admin.ModelAdmin):
     list_display = ('roll_no', 'name', 'cnic', 'mobile_no')
     search_fields = ('name', 'cnic')
     inlines = [TestScheduleInline]
-    change_list_template = "admin/candidates/candidate_changelist.html"
+    change_list_template = "admin/candidates/candidates_change_list.html"
 
     def get_urls(self):
         urls = super().get_urls()

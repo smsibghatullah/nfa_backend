@@ -1,0 +1,27 @@
+{% extends "admin/change_list.html" %}
+
+{% block sidebar %}
+  {{ block.super }}
+
+  <div class="custom-sidebar-links" style="margin-top: 1em; padding-left: 1em;">
+    <h3>Extra Links</h3>
+    <ul class="nav nav-sidebar">
+      <li><a href="{% url 'admin:candidate-search' %}">Custom Search</a></li>
+      <li><a href="{% url 'admin:candidate-upload-schedule' %}">Upload .xlsx</a></li>
+      <li><a href="{% url 'admin:submitted-forms' %}">Submitted Forms</a></li>
+    </ul>
+  </div>
+{% endblock %}
+
+{% block object-tools-items %}
+  {{ block.super }}
+  <li>
+    <a href="{% url 'admin:candidate-search' %}" class="addlink">Custom Search</a>
+  </li>
+  <li>
+    <a href="{% url 'admin:candidate-upload-schedule' %}" class="addlink">Upload .xlsx</a>
+  </li>
+  <li>
+    <a href="{% url 'admin:submitted-forms' %}" class="addlink">Submitted Forms</a>
+  </li>
+{% endblock %}
