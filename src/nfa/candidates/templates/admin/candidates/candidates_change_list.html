@@ -1,0 +1,30 @@
+{% extends "admin/change_list.html" %}
+
+{% block content %}
+  <div style="margin-bottom: 10px;">
+    <a href="{% url 'admin:candidate-search' %}" class="button custom-link">Custom Search</a>
+    <a href="{% url 'admin:candidate-upload-schedule' %}" class="button custom-link">Upload .xlsx</a>
+    <a href="{% url 'admin:submitted-forms' %}" class="button custom-link">Submitted Forms</a>
+  </div>
+  {{ block.super }}
+{% endblock %}
+
+{% block extrahead %}
+  {{ block.super }}
+  <style>
+    .custom-link {
+        font-size: 0.95rem;
+        font-weight: bold;
+        background-color: #ffeb3b;
+        color: #000 !important;
+        border-radius: 4px;
+        padding: 5px 10px;
+        text-decoration: none;
+        margin-right: 5px;
+    }
+
+    .custom-link:hover {
+        background-color: #fbc02d;
+    }
+  </style>
+{% endblock %}
