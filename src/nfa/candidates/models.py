@@ -78,3 +78,16 @@ class ContactRequest(models.Model):
 
     def __str__(self):
         return f"{self.name} - {self.service} ({self.submitted_at.strftime('%Y-%m-%d %H:%M')})"
+    
+class Document(models.Model):
+    name = models.CharField(max_length=255, help_text="Display name of the document")
+    purpose = models.TextField(blank=True, help_text="Purpose or description of the document")
+    file = models.FileField(upload_to='documents/')
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    last_updated = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-uploaded_at']
+
+    def __str__(self):
+        return self.name

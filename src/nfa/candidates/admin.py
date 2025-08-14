@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.urls import path
 from django.shortcuts import render
 from django.utils.html import format_html
-from .models import Candidate, JobPost, TestSchedule, ContactRequest
+from .models import Candidate, JobPost, TestSchedule, ContactRequest, Document
 from .views import upload_schedule
 
 
@@ -25,7 +25,7 @@ class CandidateAdmin(admin.ModelAdmin):
     list_display = ('roll_no', 'name', 'cnic', 'mobile_no')
     search_fields = ('name', 'cnic')
     inlines = [TestScheduleInline]
-    change_list_template = "admin/candidates/candidate_changelist.html"
+    change_list_template = "admin/candidates/candidates_change_list.html"
 
     def get_urls(self):
         urls = super().get_urls()
@@ -77,3 +77,15 @@ class ContactRequestAdmin(admin.ModelAdmin):
             return format_html("<a href='{}' download>Download</a>", obj.file.url)
         return "-"
     file_link.short_description = "File"
+
+@admin.register(Document)
+class DocumentAdmin(admin.ModelAdmin):
+    list_display = ('name', 'purpose', 'uploaded_at', 'download_link')
+    search_fields = ('name', 'purpose')
+    ordering = ('-uploaded_at',)
+
+    def download_link(self, obj):
+        if obj.file:
+            return format_html("<a href='{}' target='_blank'>View/Download</a>", obj.file.url)
+        return "-"
+    download_link.short_description = "Document"

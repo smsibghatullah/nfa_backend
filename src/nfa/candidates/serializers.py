@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import ContactRequest
+from .models import ContactRequest, Document
 
 
 class ContactRequestSerializer(serializers.ModelSerializer):
@@ -14,3 +14,10 @@ class ContactRequestSerializer(serializers.ModelSerializer):
             if not data.get(field):
                 raise serializers.ValidationError({field: "This field is required."})
         return data
+
+
+class DocumentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Document
+        fields = ['id', 'name', 'purpose', 'file', 'uploaded_at', 'last_updated']
+        read_only_fields = ['uploaded_at', 'last_updated']
