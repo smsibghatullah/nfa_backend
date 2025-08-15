@@ -7,6 +7,4 @@ urlpatterns = [
 
     path('documents/', get_documents, name='get-documents'),
     path('documents/upload/', upload_document, name='upload-document'),
-    path('documents/<int:pk>/delete/', delete_document, name='delete-document'),
-    path('documents/<int:pk>/replace/', replace_document, name='replace-document'),
 ]
