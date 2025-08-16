@@ -38,32 +38,6 @@ def upload_document(request):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
-@api_view(['DELETE'])
-def delete_document(request, pk):
-    try:
-        document = Document.objects.get(pk=pk)
-    except Document.DoesNotExist:
-        return Response({"error": "Document not found."}, status=status.HTTP_404_NOT_FOUND)
-
-    document.delete()
-    return Response({"message": "Document deleted successfully."}, status=status.HTTP_200_OK)
-
-@api_view(['PUT', 'PATCH'])
-@parser_classes([MultiPartParser, FormParser])
-def replace_document(request, pk):
-    try:
-        document = Document.objects.get(pk=pk)
-    except Document.DoesNotExist:
-        return Response({"error": "Document not found."}, status=status.HTTP_404_NOT_FOUND)
-
-    serializer = DocumentSerializer(document, data=request.data, partial=True)
-    if serializer.is_valid():
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_200_OK)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
 def parse_excel_date(value):
     if isinstance(value, datetime.date):
         return value

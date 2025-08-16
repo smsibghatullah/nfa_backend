@@ -1,8 +1,14 @@
 import os
-from django.db import models
-from django.utils import timezone
 import uuid
 import re
+from django.db import models, transaction
+from django.utils import timezone
+from django.core.files.base import ContentFile
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
+from django_ckeditor_5.fields import CKEditor5Field
+from .utils import html_to_pdf_bytes
+
 
 def contact_upload_path(instance, filename):
     safe_name = re.sub(r'[^a-zA-Z0-9_-]', '', instance.name.replace(' ', '_')).lower()
@@ -11,13 +17,14 @@ def contact_upload_path(instance, filename):
     now = timezone.now()
     return os.path.join('contact_uploads', now.strftime('%Y/%m/%d'), unique_name)
 
+
 class JobPost(models.Model):
     code = models.CharField(max_length=20, unique=True, help_text="Short code or abbreviation e.g. 'NQ (1)'")
     title = models.CharField(max_length=200, help_text="Full job post name, e.g. 'Naib Qasid Male (NFAPS-1)'")
     description = models.TextField(blank=True, null=True, help_text="Optional detailed description")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     def __str__(self):
         return f"{self.title} [{self.code}]"
 
@@ -46,6 +53,7 @@ class TestSchedule(models.Model):
 
     def __str__(self):
         return f"TestSchedule for {self.candidate.roll_no} - {self.job_post.code} on {self.test_date} at {self.venue or 'N/A'}"
+
 
 class ContactRequest(models.Model):
     SERVICE_CHOICES = [
@@ -78,7 +86,8 @@ class ContactRequest(models.Model):
 
     def __str__(self):
         return f"{self.name} - {self.service} ({self.submitted_at.strftime('%Y-%m-%d %H:%M')})"
-    
+
+
 class Document(models.Model):
     name = models.CharField(max_length=255, help_text="Display name of the document")
     purpose = models.TextField(blank=True, help_text="Purpose or description of the document")
@@ -91,3 +100,65 @@ class Document(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class Advertisement(models.Model):
+    title = models.CharField(max_length=255)
+    html_content = CKEditor5Field('HTML Content', config_name='default')
+    document = models.OneToOneField(
+        Document, on_delete=models.CASCADE, null=True, blank=True, related_name='advertisement'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return self.title
+
+    def _build_pdf_filename(self) -> str:
+        base = re.sub(r'[^a-zA-Z0-9_-]+', '_', self.title.strip())[:60] or "advertisement"
+        return f"advertisement_{base}_{uuid.uuid4().hex}.pdf"
+
+    @transaction.atomic
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+        pdf_bytes = html_to_pdf_bytes(self.html_content or "")
+        filename = self._build_pdf_filename()
+
+        if self.document_id:
+            doc = self.document
+            if doc.file:
+                try:
+                    doc.file.delete(save=False)
+                except Exception:
+                    pass
+            doc.name = self.title
+            doc.purpose = "Advertisement"
+            doc.file.save(filename, ContentFile(pdf_bytes), save=True)
+        else:
+            doc = Document.objects.create(name=self.title, purpose="Advertisement")
+            doc.file.save(filename, ContentFile(pdf_bytes), save=True)
+            self.document = doc
+            super().save(update_fields=["document"])
+
+        Document.objects.filter(pk=self.document.pk).update(
+            uploaded_at=self.created_at,
+            last_updated=self.updated_at,
+        )
+
+@receiver(post_delete, sender=Document)
+def delete_document_file(sender, instance, **kwargs):
+    if instance.file:
+        try:
+            instance.file.delete(save=False)
+        except Exception:
+            pass
+
+
+@receiver(post_delete, sender=Advertisement)
+def delete_advertisement_document(sender, instance, **kwargs):
+    if instance.document:
+        instance.document.delete()
