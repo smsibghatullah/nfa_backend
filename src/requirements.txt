@@ -8,3 +8,6 @@ drf-yasg
 whitenoise
 gunicorn
 openpyxl
+django-ckeditor-5
+pillow
+xhtml2pdf>=0.2.15
