@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import upload_schedule, contact_us, get_documents, upload_document, delete_document, replace_document
+from .views import upload_schedule, contact_us, get_documents, upload_document
 
 urlpatterns = [
     path('upload-schedule/', upload_schedule, name='upload-schedule'),

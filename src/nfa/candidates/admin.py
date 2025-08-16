@@ -1,22 +1,20 @@
+# candidates/admin.py
 from django.contrib import admin
 from django.urls import path
 from django.shortcuts import render
 from django.utils.html import format_html
-from .models import Candidate, JobPost, TestSchedule, ContactRequest, Document
+from django import forms
+
+from .models import (
+    Candidate, JobPost, TestSchedule, ContactRequest, Document, Advertisement
+)
 from .views import upload_schedule
 
 
 class TestScheduleInline(admin.TabularInline):
     model = TestSchedule
     extra = 0
-    readonly_fields = (
-        'job_post',
-        'paper',
-        'test_date',
-        'session',
-        'reporting_time',
-        'conduct_time',
-    )
+    readonly_fields = ('job_post', 'paper', 'test_date', 'session', 'reporting_time', 'conduct_time',)
     can_delete = False
 
 
@@ -41,8 +39,8 @@ class CandidateAdmin(admin.ModelAdmin):
         query = request.GET.get('q', '').strip()
         candidates = []
         if query:
-            candidates = Candidate.objects.filter(name__icontains=query) | Candidate.objects.filter(cnic__icontains=query)
-
+            candidates = (Candidate.objects.filter(name__icontains=query) |
+                          Candidate.objects.filter(cnic__icontains=query))
         context['candidates'] = candidates
         context['query'] = query
         return render(request, 'admin/candidates/search.html', context)
@@ -78,6 +76,7 @@ class ContactRequestAdmin(admin.ModelAdmin):
         return "-"
     file_link.short_description = "File"
 
+
 @admin.register(Document)
 class DocumentAdmin(admin.ModelAdmin):
     list_display = ('name', 'purpose', 'uploaded_at', 'download_link')
@@ -86,6 +85,13 @@ class DocumentAdmin(admin.ModelAdmin):
 
     def download_link(self, obj):
         if obj.file:
-            return format_html("<a href='{}' target='_blank'>View/Download</a>", obj.file.url)
+            return format_html("<a href='{}' target='_blank'>View</a>", obj.file.url)
         return "-"
     download_link.short_description = "Document"
+
+
+@admin.register(Advertisement)
+class AdvertisementAdmin(admin.ModelAdmin):
+    exclude = ("document",)
+    list_display = ('title', 'created_at', 'updated_at')
+    search_fields = ('title',)
