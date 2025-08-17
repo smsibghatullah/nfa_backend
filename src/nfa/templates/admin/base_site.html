@@ -1,0 +1,13 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block title %}NFA Admin{% endblock %}
+
+{% block branding %}
+<div id="site-name" style="display:flex; flex-direction:column; align-items:center; gap:5px;">
+    <img src="{% static 'img/logo.svg' %}" alt="Logo" style="height:40px;">
+    <span style="font-size:20px; font-weight:bold; text-align:center;">NFA Administration</span>
+</div>
+{% endblock %}
+
+{% block nav-global %}{% endblock %}
