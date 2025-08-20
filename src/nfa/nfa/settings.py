@@ -219,6 +219,14 @@ DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "noreply@nfa.gov.pk")
 UNFOLD = {
     "SITE_TITLE": "NFA Administration",
     "SITE_HEADER": "NFA Administration",
+        #"SITE_ICON": {
+        #"light": lambda request: static("icon-light.svg"),  
+        #"dark": lambda request: static("icon-dark.svg"),  
+    #},
+    "SITE_LOGO": {
+        "light": lambda request: static("img/logo.svg"),
+        "dark": lambda request: static("img/logo.svg"),
+    },
     "SITE_DROPDOWN": [
         {
             "icon": "diamond",
