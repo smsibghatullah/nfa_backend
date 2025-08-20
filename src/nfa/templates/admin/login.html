@@ -1,0 +1,52 @@
+{% extends "admin/login.html" %}
+{% load static i18n %}
+
+{% block content %}
+<div id="page" class="bg-white flex min-h-screen dark:bg-base-900">
+  <div class="flex grow items-center justify-center mx-auto px-4 relative">
+    <div class="w-full sm:w-96">
+
+      <div class="border-b border-base-200 mb-8 pb-6 dark:border-base-800 text-center">
+        <img src="{% static 'img/logo.svg' %}" alt="Site Logo" class="h-12 w-auto mx-auto mb-3">
+        <span class="block font-semibold text-primary-600 tracking-tight text-xl dark:text-primary-500">
+          NFA Administration
+        </span>
+      </div>
+
+      <form action="{{ app_path }}" method="post" id="login-form">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+
+        <div class="flex flex-col group mb-5 last:mb-4">
+          <div class="flex flex-col gap-2">
+            <label for="id_username" class="block font-semibold text-font-important-light dark:text-font-important-dark">
+              {% trans 'Username' %}
+              <span class="text-red-600">*</span>
+            </label>
+            {{ form.username }}
+          </div>
+        </div>
+
+        <div class="flex flex-col group mb-5 last:mb-4">
+          <div class="flex flex-col gap-2">
+            <label for="id_password" class="block font-semibold text-font-important-light dark:text-font-important-dark">
+              {% trans 'Password' %}
+              <span class="text-red-600">*</span>
+            </label>
+            {{ form.password }}
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-3 mt-6">
+          <button type="submit"
+                  class="font-medium flex group items-center gap-2 px-3 py-2 rounded-default justify-center whitespace-nowrap cursor-pointer
+                         border border-base-200 bg-primary-600 border-transparent text-white submit-row w-full">
+            {% trans 'Log in' %}
+            <span class="material-symbols-outlined relative right-0 transition-all group-hover:-right-1 text-sm">arrow_forward</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
