@@ -97,8 +97,8 @@ class Document(models.Model):
 
     class Meta:
         ordering = ['-uploaded_at']
-        verbose_name = "To Document"
-        verbose_name_plural = "To Documents"
+        verbose_name = "Add Document"
+        verbose_name_plural = "Add Documents"
 
     def __str__(self):
         return self.name
