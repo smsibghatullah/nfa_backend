@@ -1,5 +1,6 @@
 from io import BytesIO
 import os
+import urllib.parse
 from django.conf import settings
 from xhtml2pdf import pisa
 
@@ -30,6 +31,8 @@ BASE_WRAPPER = """\
 """
 
 def link_callback(uri, rel):
+    uri = urllib.parse.unquote(uri)
+
     if uri.startswith(settings.MEDIA_URL):
         path = os.path.join(settings.MEDIA_ROOT, uri.replace(settings.MEDIA_URL, ""))
     elif uri.startswith(settings.STATIC_URL):
@@ -38,7 +41,7 @@ def link_callback(uri, rel):
         return uri
 
     if not os.path.isfile(path):
-        raise Exception("Media URI does not exist: %s" % path)
+        raise Exception(f"Media URI does not exist: {path}")
     return path
 
 def html_to_pdf_bytes(html: str) -> bytes:
