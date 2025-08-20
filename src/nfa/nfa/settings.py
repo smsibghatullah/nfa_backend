@@ -1,6 +1,10 @@
 from pathlib import Path
 import os
 from datetime import timedelta
+from django.utils.translation import gettext_lazy as _
+from django.templatetags.static import static
+from django.urls import reverse_lazy
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -11,6 +15,7 @@ DEBUG = os.getenv("DJANGO_DEBUG", "True") == "True"
 ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "").split(",") if not DEBUG else ["*"]
 
 INSTALLED_APPS = [
+    'unfold',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -27,6 +32,8 @@ INSTALLED_APPS = [
     
     'django_ckeditor_5',
 ]
+
+TAILWIND_APP_NAME = 'theme'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -66,7 +73,6 @@ DATABASES = {
         'PORT': os.environ['DB_PORT'],
     }
 }
-
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
@@ -209,3 +215,52 @@ CKEDITOR_5_FILE_UPLOAD_PERMISSION = "staff"
 
 EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend")
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "noreply@nfa.gov.pk")
+
+UNFOLD = {
+    "SITE_TITLE": "NFA Administration",
+    "SITE_HEADER": "NFA Administration",
+    "SITE_DROPDOWN": [
+        {
+            "icon": "diamond",
+            "title": _("My site"),
+            "link": "http://localhost:8080",
+        },
+    ],
+    "COLORS": {
+        "base": {
+            "50": "240, 255, 240",   
+            "100": "200, 240, 200",  
+            "200": "160, 220, 160",  
+            "300": "120, 200, 120",  
+            "400": "80, 180, 80",    
+            "500": "40, 160, 40",   
+            "600": "20, 120, 20",   
+            "700": "10, 90, 10",    
+            "800": "5, 60, 5",     
+            "900": "2, 30, 2",    
+            "950": "1, 15, 1",  
+        },
+        "primary": {
+            "50": "240, 255, 240",   
+            "100": "200, 240, 200",  
+            "200": "160, 220, 160",  
+            "300": "120, 200, 120", 
+            "400": "80, 180, 80",    
+            "500": "40, 160, 40",    
+            "600": "20, 120, 20",   
+            "700": "10, 90, 10",     
+            "800": "5, 60, 5",       
+            "900": "2, 30, 2",       
+            "950": "1, 15, 1",       
+        },
+        "font": {
+            "subtle-light": "#000000",   
+            "subtle-dark": "#000000",    
+            "default-light": "#000000",  
+            "default-dark": "#000000",   
+            "important-light": "#000000",
+            "important-dark": "#000000",
+            "hover": "var(--color-primary-300)", 
+        },
+    }
+}
