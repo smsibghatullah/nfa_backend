@@ -10,7 +10,7 @@ This project is a backend application for NFA.
 ### Setup & Run
 1. Clone the repository:
    ```bash
-   git clone <repo-url>
+   git clone https://github.com/smsibghatullah/nfa_backend
    cd nfa_backend
    ```
 2. Build and start the containers:
