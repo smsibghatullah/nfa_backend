@@ -27,6 +27,9 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt.token_blacklist',
     'drf_yasg',
 
+    "django_otp",
+    "django_otp.plugins.otp_totp",
+
     'authentication',
     'candidates',
     
@@ -41,6 +44,9 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+
+    "django_otp.middleware.OTPMiddleware",
+
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -97,6 +103,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    "DEFAULT_PERMISSION_CLASSES": (
+        "rest_framework.permissions.IsAuthenticated",
     ),
 }
 
@@ -227,13 +236,6 @@ UNFOLD = {
         "light": lambda request: static("img/logo.svg"),
         "dark": lambda request: static("img/logo.svg"),
     },
-    "SITE_DROPDOWN": [
-        {
-            "icon": "diamond",
-            "title": _("My site"),
-            "link": "http://localhost:8080",
-        },
-    ],
     "COLORS": {
         "base": {
             "50": "240, 255, 240",   
@@ -272,3 +274,10 @@ UNFOLD = {
         },
     }
 }
+
+AUTH_USER_MODEL = "authentication.User"
+
+AUTHENTICATION_BACKENDS = [
+    "authentication.backends.EmailBackend",
+    "django.contrib.auth.backends.ModelBackend",
+]
