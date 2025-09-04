@@ -6,23 +6,29 @@ from django.contrib.admin.views.decorators import staff_member_required
 from .models import Candidate, JobPost, TestSchedule, ContactRequest, Document
 from .serializers import ContactRequestSerializer, DocumentSerializer
 
-from rest_framework.decorators import api_view, parser_classes
+from rest_framework.decorators import api_view, parser_classes, permission_classes
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.permissions import AllowAny
 
 
 @api_view(['POST'])
 @parser_classes([MultiPartParser, FormParser])
+@permission_classes([AllowAny])
 def contact_us(request):
     serializer = ContactRequestSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save()
-        return Response({"message": "Contact request submitted successfully."}, status=status.HTTP_201_CREATED)
+        return Response(
+            {"message": "Contact request submitted successfully."},
+            status=status.HTTP_201_CREATED
+        )
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['GET'])
+@permission_classes([AllowAny])
 def get_documents(request):
     documents = Document.objects.all()
     serializer = DocumentSerializer(documents, many=True, context={'request': request})
@@ -31,12 +37,14 @@ def get_documents(request):
 
 @api_view(['POST'])
 @parser_classes([MultiPartParser, FormParser])
+@permission_classes([AllowAny])
 def upload_document(request):
     serializer = DocumentSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 def parse_excel_date(value):
     if isinstance(value, datetime.date):
@@ -67,20 +75,25 @@ def upload_schedule(request):
             return redirect(request.path)
 
         expected_columns = [
-            'Sr.No.', 'Roll No', 'Name', 'Father Name', 'CNIC', 'Post Applied For', 'Postal Address',
-            'Mobile No.', 'Paper', 'Test Date', 'Session', 'Reporting Time', 'Conduct Time', 'Venue'
+            'Sr.No.', 'Roll No', 'Name', 'Father Name', 'CNIC', 'Post Applied For',
+            'Postal Address', 'Mobile No.', 'Paper', 'Test Date', 'Session',
+            'Reporting Time', 'Conduct Time', 'Venue'
         ]
 
         headers = [cell.value for cell in next(ws.iter_rows(min_row=1, max_row=1))]
         if headers != expected_columns:
-            messages.error(request, "Excel format is invalid. Ensure headers match the required structure.")
+            messages.error(
+                request,
+                "Excel format is invalid. Ensure headers match the required structure."
+            )
             return redirect(request.path)
 
         for row in ws.iter_rows(min_row=2, values_only=True):
             if all((cell is None or (isinstance(cell, str) and cell.strip() == "")) for cell in row):
                 continue
             try:
-                sr_no, roll_no, name, father_name, cnic, post_title, postal_address, mobile_no, paper, test_date, session, reporting_time, conduct_time, venue = row
+                sr_no, roll_no, name, father_name, cnic, post_title, postal_address, \
+                mobile_no, paper, test_date, session, reporting_time, conduct_time, venue = row
 
                 test_date = parse_excel_date(test_date)
 
