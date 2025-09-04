@@ -6,6 +6,7 @@ services:
       - 8080:8080
     volumes:
       - ./src:/app
+    user: "${LOCAL_UID}:${LOCAL_GID}"
     depends_on:
       db:
         condition: service_healthy
