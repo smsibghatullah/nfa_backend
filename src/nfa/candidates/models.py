@@ -1,6 +1,7 @@
 import os
 import uuid
 import re
+from django.conf import settings
 from django.db import models, transaction
 from django.utils import timezone
 from django.core.files.base import ContentFile
@@ -27,7 +28,46 @@ class JobPost(models.Model):
 
     def __str__(self):
         return f"{self.title} [{self.code}]"
+    
+class JobListing(models.Model):
+    STATUS_CHOICES = [
+        ('open', 'Open / Active / Published'),
+        ('closed', 'Closed / Filled / Inactive'),
+        ('draft', 'Draft / Pending / Unpublished'),
+        ('expired', 'Expired'),
+        ('on_hold', 'On Hold / Paused / Temporarily Closed'),
+        ('archived', 'Archived'),
+    ]
 
+    QUALIFICATION_CHOICES = [
+        ('matric', 'Matric'),
+        ('intermediate', 'Intermediate'),
+        ('bachelors', 'Bachelors'),
+        ('masters', 'Masters'),
+    ]
+
+    job_post = models.ForeignKey(JobPost, on_delete=models.CASCADE, related_name='listings')
+    location = models.CharField(max_length=255, blank=True, null=True)
+    application_deadline = models.DateField()
+    number_of_positions = models.PositiveIntegerField(default=1)
+    salary_range = models.CharField(max_length=50, blank=True, null=True, help_text="e.g., 50000-70000 PKR")
+
+    minimum_age = models.PositiveIntegerField(blank=True, null=True, help_text="Minimum age required")
+    minimum_qualification = models.CharField(max_length=20, choices=QUALIFICATION_CHOICES, blank=True, null=True)
+    required_experience = models.PositiveIntegerField(blank=True, null=True, help_text="Required experience in years")
+
+    requirements = models.TextField(blank=True, null=True, help_text="Qualifications, experience, skills required")
+    responsibilities = models.TextField(blank=True, null=True)
+    additional_info = models.TextField(blank=True, null=True, help_text="Any extra info or instructions")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-application_deadline']
+
+    def __str__(self):
+        return f"{self.job_post.title} - {self.location or 'N/A'} ({self.status})"
 
 class Candidate(models.Model):
     roll_no = models.CharField(max_length=20, unique=True)
@@ -69,11 +109,7 @@ class ContactRequest(models.Model):
         ('pathology', 'Pathology'),
         ('explosives_analysis', 'Explosives Analysis'),
     ]
-
-    PREFERRED_CONTACT_CHOICES = [
-        ('email', 'Email'),
-        ('phone', 'Phone'),
-    ]
+    PREFERRED_CONTACT_CHOICES = [('email', 'Email'), ('phone', 'Phone')]
 
     name = models.CharField(max_length=255)
     email = models.EmailField()
@@ -126,17 +162,13 @@ class Advertisement(models.Model):
     @transaction.atomic
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-
         pdf_bytes = html_to_pdf_bytes(self.html_content or "")
         filename = self._build_pdf_filename()
-
         if self.document_id:
             doc = self.document
             if doc.file:
-                try:
-                    doc.file.delete(save=False)
-                except Exception:
-                    pass
+                try: doc.file.delete(save=False)
+                except Exception: pass
             doc.name = self.title
             doc.purpose = "Advertisement"
             doc.file.save(filename, ContentFile(pdf_bytes), save=True)
@@ -145,22 +177,119 @@ class Advertisement(models.Model):
             doc.file.save(filename, ContentFile(pdf_bytes), save=True)
             self.document = doc
             super().save(update_fields=["document"])
-
         Document.objects.filter(pk=self.document.pk).update(
             uploaded_at=self.created_at,
             last_updated=self.updated_at,
         )
 
+
 @receiver(post_delete, sender=Document)
 def delete_document_file(sender, instance, **kwargs):
     if instance.file:
-        try:
-            instance.file.delete(save=False)
-        except Exception:
-            pass
+        try: instance.file.delete(save=False)
+        except Exception: pass
 
 
 @receiver(post_delete, sender=Advertisement)
 def delete_advertisement_document(sender, instance, **kwargs):
     if instance.document:
         instance.document.delete()
+
+class Profile(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='profile')
+    date_of_birth = models.DateField()
+    postal_address = models.TextField()
+    phone_number = models.CharField(max_length=15, blank=True, null=True)
+    bio = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.user.email} Profile"
+
+
+class Education(models.Model):
+    QUALIFICATION_CHOICES = [
+        ('matric', 'Matric'),
+        ('intermediate', 'Intermediate'),
+        ('bachelors', 'Bachelors'),
+        ('masters', 'Masters'),
+    ]
+
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='educations')
+    institution_name = models.CharField(max_length=255)
+    degree = models.CharField(max_length=20, choices=QUALIFICATION_CHOICES)
+    field_of_study = models.CharField(max_length=100)
+    start_date = models.DateField()
+    end_date = models.DateField()
+    grade = models.CharField(max_length=20, blank=True, null=True)
+    description = models.TextField(blank=True, null=True)
+
+    class Meta:
+        ordering = ['-end_date']
+
+    def __str__(self):
+        return f"{self.degree} - {self.institution_name}"
+
+class WorkHistory(models.Model):
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='work_histories')
+    company_name = models.CharField(max_length=255)
+    job_title = models.CharField(max_length=100)
+    start_date = models.DateField()
+    end_date = models.DateField(blank=True, null=True)
+    responsibilities = models.TextField(blank=True, null=True)
+    is_current = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['-start_date']
+
+    def __str__(self):
+        return f"{self.job_title} - {self.company_name}"
+    
+def application_upload_path(instance, filename):
+    return f"applications/{instance.applicant.user.id}/{uuid.uuid4().hex}_{filename}"
+
+class JobQuestion(models.Model):
+    job_listing = models.ForeignKey('JobListing', on_delete=models.CASCADE, related_name='questions')
+    question_text = models.TextField()
+    is_mandatory = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"{self.job_listing.job_post.title} - {self.question_text[:50]}"
+
+class JobApplication(models.Model):
+    applicant = models.ForeignKey('Profile', on_delete=models.CASCADE, related_name='applications')
+    job_listing = models.ForeignKey('JobListing', on_delete=models.CASCADE, related_name='applications')
+    reference_number = models.CharField(max_length=50, unique=True, default=uuid.uuid4)
+    submitted_at = models.DateTimeField(auto_now_add=True)
+    is_confirmed = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.reference_number} - {self.applicant.user.email}"
+
+def application_upload_path(instance, filename):
+    uid = uuid.uuid4().hex
+    if getattr(instance, 'application', None):
+        return f"applications/{instance.application.id}/{uid}_{filename}"
+    return f"applications/temp/{uid}_{filename}"
+
+
+class ApplicationDocument(models.Model):
+    application = models.ForeignKey(
+        'JobApplication',
+        on_delete=models.CASCADE,
+        related_name='documents',
+        null=True,
+        blank=True
+    )
+    name = models.CharField(max_length=255)
+    file = models.FileField(upload_to=application_upload_path)
+
+    def __str__(self):
+        return f"{self.name} - {self.application.reference_number if self.application else 'TEMP'}"
+
+class ApplicationAnswer(models.Model):
+    application = models.ForeignKey(JobApplication, on_delete=models.CASCADE, related_name='answers')
+    question = models.ForeignKey(JobQuestion, on_delete=models.CASCADE)
+    answer_text = models.TextField()
+
+    def __str__(self):
+        return f"{self.question.question_text[:50]} - {self.application.reference_number}"

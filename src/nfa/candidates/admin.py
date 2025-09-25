@@ -4,7 +4,10 @@ from django.shortcuts import render
 from django.utils.html import format_html
 
 from unfold.admin import ModelAdmin
-from .models import Candidate, JobPost, TestSchedule, ContactRequest, Document, Advertisement
+from .models import (Candidate, JobPost, TestSchedule, 
+                     ContactRequest, Document, Advertisement,
+                     Profile, Education, WorkHistory, JobListing,
+                     JobQuestion, JobApplication, ApplicationDocument, ApplicationAnswer)
 from .views import upload_schedule
 
 class TestScheduleInline(admin.TabularInline):
@@ -12,6 +15,38 @@ class TestScheduleInline(admin.TabularInline):
     extra = 0
     readonly_fields = ('job_post', 'paper', 'test_date', 'session', 'reporting_time', 'conduct_time')
     can_delete = False
+
+@admin.register(Profile)
+class ProfileAdmin(ModelAdmin):
+    list_display = [field.name for field in Profile._meta.get_fields() if not field.many_to_many and not field.one_to_many]
+
+@admin.register(Education)
+class EducationAdmin(ModelAdmin):
+    list_display = [field.name for field in Education._meta.get_fields() if not field.many_to_many and not field.one_to_many]
+
+@admin.register(WorkHistory)
+class WorkHistoryAdmin(ModelAdmin):
+    list_display = [field.name for field in WorkHistory._meta.get_fields() if not field.many_to_many and not field.one_to_many]
+
+@admin.register(JobListing)
+class JobListing(ModelAdmin):
+    list_display = [field.name for field in JobListing._meta.get_fields() if not field.many_to_many and not field.one_to_many]
+
+@admin.register(JobQuestion)
+class JobQuestion(ModelAdmin):
+    list_display = [field.name for field in JobQuestion._meta.get_fields() if not field.many_to_many and not field.one_to_many]
+
+@admin.register(JobApplication)
+class JobApplication(ModelAdmin):
+    list_display = [field.name for field in JobApplication._meta.get_fields() if not field.many_to_many and not field.one_to_many]
+
+@admin.register(ApplicationDocument)
+class ApplicationDocument(ModelAdmin):
+    list_display = [field.name for field in ApplicationDocument._meta.get_fields() if not field.many_to_many and not field.one_to_many]
+
+@admin.register(ApplicationAnswer)
+class ApplicationAnswer(ModelAdmin):
+    list_display = [field.name for field in ApplicationAnswer._meta.get_fields() if not field.many_to_many and not field.one_to_many]
 
 @admin.register(Candidate)
 class CandidateAdmin(ModelAdmin):
