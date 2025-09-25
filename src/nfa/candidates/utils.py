@@ -3,6 +3,7 @@ import os
 import urllib.parse
 from django.conf import settings
 from xhtml2pdf import pisa
+from datetime import date
 
 BASE_WRAPPER = """\
 <!DOCTYPE html>
@@ -56,3 +57,32 @@ def html_to_pdf_bytes(html: str) -> bytes:
     if status.err:
         raise ValueError("Failed to generate PDF from HTML content.")
     return result.getvalue()
+
+
+QUALIFICATION_ORDER = {
+    "matric": 1,
+    "intermediate": 2,
+    "bachelors": 3,
+    "masters": 4,
+}
+
+def calculate_age(dob):
+    today = date.today()
+    return today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
+
+def get_highest_qualification(profile):
+    degrees = [edu.degree for edu in profile.educations.all()]
+    if not degrees:
+        return None
+    return max(degrees, key=lambda d: QUALIFICATION_ORDER.get(d, 0))
+
+def calculate_total_experience(profile):
+    total_days = 0
+    for work in profile.work_histories.all():
+        start = work.start_date
+        end = work.end_date or date.today()
+        total_days += (end - start).days
+        
+    total_years = round(total_days / 365, 1)
+    return total_years
+
