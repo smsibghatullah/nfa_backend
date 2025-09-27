@@ -5,7 +5,19 @@ PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y curl
+RUN apt-get update && apt-get install -y \
+    gcc \
+    pkg-config \
+    libcairo2-dev \
+    libjpeg-dev \
+    zlib1g-dev \
+    libpq-dev \
+    libxml2-dev \
+    libxslt1-dev \
+    libffi-dev \
+    make \
+    curl \
+ && rm -rf /var/lib/apt/lists/*
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
